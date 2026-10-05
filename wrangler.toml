@@ -1,0 +1,30 @@
+name = "omnical"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "omnical-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "omnical-photos"
+
+[vars]
+LLM_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+VISION_MODEL = "@cf/meta/llama-3.2-11b-vision-instruct"
+WHISPER_MODEL = "@cf/openai/whisper-large-v3-turbo"
+# Set these as secrets in production (wrangler secret put ...), never commit them:
+# TELEGRAM_BOT_TOKEN, WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, META_VERIFY_TOKEN,
+# MESSENGER_PAGE_TOKEN, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, IMSG_BRIDGE_TOKEN

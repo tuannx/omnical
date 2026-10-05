@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OmniCal — AI calorie tracker on every channel</title>
+<meta name="description" content="Open-source omnichannel AI calorie tracker. Log meals by photo, voice or text on Web, Telegram, WhatsApp, Messenger, SMS and iMessage bridges."/>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<header class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+  <div class="font-black text-2xl">Omni<span class="text-emerald-600">Cal</span></div>
+  <div class="text-sm flex gap-3">
+    <span class="hidden sm:inline text-slate-500">Web · Telegram · WhatsApp · Messenger · SMS · iMessage</span>
+    <a class="underline" href="https://github.com/tuannx/omnical" target="_blank" rel="noreferrer">GitHub (MIT)</a>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 pb-20 grid lg:grid-cols-[1fr_340px] gap-8">
+  <section>
+    <h1 class="text-4xl font-black leading-tight">Text your food. It does the math — on every channel.</h1>
+    <p class="mt-3 text-slate-600">The original Mochi lived only inside iMessage ($999 listing on r/saasforsale). OmniCal is the open-source, <b>omnichannel</b> version on Cloudflare: one brain, six inboxes. No app to download.</p>
+
+    <div class="flex flex-wrap gap-2 mt-5">
+      <span class="bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full px-3 py-1">🌐 Web Chat — live below</span>
+      <span class="bg-white border text-xs font-bold rounded-full px-3 py-1">✈️ Telegram Bot</span>
+      <span class="bg-white border text-xs font-bold rounded-full px-3 py-1">💬 WhatsApp</span>
+      <span class="bg-white border text-xs font-bold rounded-full px-3 py-1">📘 Messenger</span>
+      <span class="bg-white border text-xs font-bold rounded-full px-3 py-1">📱 SMS (Twilio)</span>
+      <span class="bg-white border text-xs font-bold rounded-full px-3 py-1">🍏 iMessage via bridge</span>
+    </div>
+
+    <div class="mt-6 bg-white rounded-2xl shadow flex flex-col h-[520px]">
+      <div class="border-b px-4 py-3 flex justify-between items-center"><div class="font-bold">OmniCal chat (web channel)</div><div id="today-pill" class="text-xs bg-slate-100 rounded-full px-3 py-1">— kcal today</div></div>
+      <div id="chat" class="flex-1 overflow-auto p-4 space-y-3"></div>
+      <div class="border-t p-3">
+        <div class="flex gap-2">
+          <label class="border rounded-xl px-3 py-2 cursor-pointer text-sm">📸 Photo<input id="photo" type="file" accept="image/*" class="hidden"/></label>
+          <input id="msg" class="flex-1 border rounded-xl px-4 py-2" placeholder='Try: "2 eggs, toast and a latte" · "goal lose 1800" · "weight 72.5" · "today"'/>
+          <button id="send" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-5">Send</button>
+        </div>
+        <div class="flex gap-2 mt-2 flex-wrap">
+          <button class="quick text-xs border rounded-full px-3 py-1">2 eggs, toast and a latte</button>
+          <button class="quick text-xs border rounded-full px-3 py-1">1 bowl pho</button>
+          <button class="quick text-xs border rounded-full px-3 py-1">goal lose 1800</button>
+          <button class="quick text-xs border rounded-full px-3 py-1">weight 72.5</button>
+          <button class="quick text-xs border rounded-full px-3 py-1">today</button>
+          <button class="quick text-xs border rounded-full px-3 py-1">help</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="space-y-4">
+    <div class="bg-white rounded-2xl shadow p-4">
+      <div class="font-bold mb-2">Today</div>
+      <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div id="bar" class="h-full bg-emerald-500" style="width:0%"></div></div>
+      <div id="today-detail" class="text-sm text-slate-600 mt-2">—</div>
+    </div>
+    <div class="bg-white rounded-2xl shadow p-4"><div class="font-bold mb-2">Recent meals</div><div id="meals" class="space-y-2 text-sm text-slate-600">—</div></div>
+    <div class="bg-slate-900 text-white rounded-2xl p-4 text-sm">
+      <div class="font-bold mb-1">Run it on your channels</div>
+      <p class="text-slate-300">Deploy once on Cloudflare, then point each platform's webhook at this Worker:</p>
+      <pre class="text-xs mt-2 whitespace-pre-wrap">/webhook/telegram
+/webhook/whatsapp
+/webhook/messenger
+/webhook/sms      (Twilio)
+/webhook/imessage (bridge)</pre>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+let userKey=localStorage.getItem('omnical_user')||('web-'+Math.random().toString(36).slice(2,9));localStorage.setItem('omnical_user',userKey);
+function bubble(text,me){const d=document.createElement('div');d.className='flex '+(me?'justify-end':'justify-start');d.innerHTML=`<div class="${me?'bg-emerald-600 text-white':'bg-slate-100'} rounded-2xl px-4 py-2 max-w-[85%] whitespace-pre-wrap text-sm">${text.replace(/</g,'&lt;')}</div>`;$('#chat').appendChild(d);$('#chat').scrollTop=1e9}
+bubble('Hi! I\'m OmniCal 🍽️ Tell me your goal ("goal lose 1800") then send a meal — text, photo, or try the quick prompts below.','')
+async function send(text,imageBase64){if(text)bubble(text,1);const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userKey,message:text||'Here is my meal photo',imageBase64})});const j=await r.json();bubble(j.reply||'Error','');refresh(j)}
+async function refresh(j){try{const d=j||await(await fetch('/api/dashboard?userKey='+userKey)).json();const t=d.today,goal=d.user?.target_kcal||2000;$('#today-pill').textContent=`${t.kcal} / ${goal} kcal today`;$('#bar').style.width=Math.min(100,Math.round(t.kcal/goal*100))+'%';$('#today-detail').textContent=`${t.meals} meals · Protein ${t.protein}g · Carbs ${t.carbs}g · Fat ${t.fat}g · Goal: ${d.user?.goal_type||'maintain'}`;$('#meals').innerHTML=(d.meals||[]).slice(0,8).map(m=>`<div class="border rounded-lg px-3 py-2"><b>${m.kcal} kcal</b> · ${m.channel} · ${new Date(m.created_at).toLocaleTimeString()}<div class="text-xs line-clamp-2">${(m.raw_text||'[photo]').replace(/</g,'&lt;')}</div></div>`).join('')||'No meals yet.'}catch{}}
+$('#send').onclick=()=>{const v=$('#msg').value.trim();if(!v)return;$('#msg').value='';send(v)};
+$('#msg').addEventListener('keydown',e=>{if(e.key==='Enter')$('#send').click()});
+document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>send(b.textContent.trim()));
+$('#photo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{bubble('📸 Meal photo sent',1);send('',String(r.result).split(',')[1])};r.readAsDataURL(f)};
+refresh();
+</script>
+</body>
+</html>
